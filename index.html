@@ -675,6 +675,89 @@
     }
 
     /* ============================================================
+       COMPARADOR DE PLATAFORMAS (n8n + OpenAI)
+    ============================================================ */
+    #comparador { background: transparent; }
+
+    .compare-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1.6rem;
+    }
+
+    .compare-selectors {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.4rem;
+    }
+
+    .compare-selectors .filter-group { flex: 1; min-width: 180px; }
+
+    .vs-badge {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: var(--text-muted);
+      padding-top: 1.4rem;
+    }
+
+    #btn-comparar {
+      width: 100%;
+      background: linear-gradient(135deg, var(--violet), var(--blue));
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 14px 28px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      letter-spacing: 0.3px;
+    }
+
+    #btn-comparar:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,180,216,0.35); }
+    #btn-comparar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .stats-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.4rem 0;
+    }
+
+    .stats-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .stats-card .plat-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .stats-card .stat-row {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .stats-card .stat-row strong { color: var(--gold); }
+
+    #resultado-comparacion {
+      display: none;
+    }
+
+    #resultado-comparacion.visible { display: block; }
+
+    /* ============================================================
        LOADING OVERLAY
     ============================================================ */
     #loading-overlay {
@@ -750,6 +833,7 @@
       <li><a href="#dashboard" onclick="setActive(this)">Dashboard</a></li>
       <li><a href="#recomendar" onclick="setActive(this)">Recomendar</a></li>
       <li><a href="#chat-ia" onclick="setActive(this)">Sorprendeme</a></li>
+      <li><a href="#comparador" onclick="setActive(this)">Comparar</a></li>
     </ul>
   </nav>
 
@@ -976,6 +1060,49 @@
   </section>
 
   <!-- ============================================================
+       SECCIÓN COMPARADOR DE PLATAFORMAS
+  ============================================================ -->
+  <section id="comparador" style="max-width:1200px; margin:0 auto; padding:80px 2rem 60px;">
+    <p class="section-label">Automatización #2</p>
+    <h2 class="section-title">Comparador de plataformas</h2>
+    <p class="section-desc">Elegí dos plataformas: calculamos sus métricas reales sobre el dataset y un segundo workflow de n8n + OpenAI redacta la comparación.</p>
+
+    <div class="compare-container">
+      <div class="compare-selectors">
+        <div class="filter-group">
+          <label>Plataforma A</label>
+          <select id="cmp-platform-a">
+            <option>Netflix</option>
+            <option>Disney+</option>
+            <option>Prime Video</option>
+            <option>HBO Max</option>
+            <option>Apple TV+</option>
+          </select>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="filter-group">
+          <label>Plataforma B</label>
+          <select id="cmp-platform-b">
+            <option>HBO Max</option>
+            <option>Netflix</option>
+            <option>Disney+</option>
+            <option>Prime Video</option>
+            <option>Apple TV+</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="stats-preview" id="cmp-stats-preview"></div>
+
+      <button id="btn-comparar" onclick="compararPlataformas()">⚔️ Comparar con IA</button>
+
+      <div id="resultado-comparacion" style="margin-top:1.4rem;">
+        <div id="comparacion-contenido"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
        FOOTER
   ============================================================ -->
   <footer>
@@ -1048,6 +1175,118 @@
 
       boton.disabled = false;
       boton.textContent = '🎲 Sorprendeme';
+    }
+  </script>
+
+  <!-- ============================================================
+       COMPARADOR DE PLATAFORMAS · conexión con n8n (workflow separado)
+  ============================================================ -->
+  <script>
+    const COMPARE_WEBHOOK_URL = "https://seregrun1123.app.n8n.cloud/webhook/d7902e81-7a6d-45eb-9686-243250ad87e1";
+
+    function statsDePlataforma(nombrePlataforma) {
+      const items = DATASET.filter(d => d.plataforma === nombrePlataforma);
+      const total = items.length;
+      const avg = total ? (items.reduce((a, b) => a + b.puntaje, 0) / total) : 0;
+      const xGenero = items.reduce((acc, item) => {
+        acc[item.genero] = (acc[item.genero] || 0) + 1;
+        return acc;
+      }, {});
+      const generoPrincipal = Object.entries(xGenero).sort((a, b) => b[1] - a[1])[0];
+      return {
+        nombre: nombrePlataforma,
+        total: total,
+        avg: avg.toFixed(2),
+        genero: generoPrincipal ? generoPrincipal[0] : 'N/D'
+      };
+    }
+
+    function renderStatsPreview() {
+      const platA = document.getElementById('cmp-platform-a').value;
+      const platB = document.getElementById('cmp-platform-b').value;
+      const statsA = statsDePlataforma(platA);
+      const statsB = statsDePlataforma(platB);
+
+      document.getElementById('cmp-stats-preview').innerHTML = `
+        <div class="stats-card">
+          <div class="plat-name">${statsA.nombre}</div>
+          <div class="stat-row">Títulos: <strong>${statsA.total}</strong></div>
+          <div class="stat-row">Puntaje promedio: <strong>${statsA.avg}</strong></div>
+          <div class="stat-row">Género principal: <strong>${statsA.genero}</strong></div>
+        </div>
+        <div class="stats-card">
+          <div class="plat-name">${statsB.nombre}</div>
+          <div class="stat-row">Títulos: <strong>${statsB.total}</strong></div>
+          <div class="stat-row">Puntaje promedio: <strong>${statsB.avg}</strong></div>
+          <div class="stat-row">Género principal: <strong>${statsB.genero}</strong></div>
+        </div>
+      `;
+    }
+
+    document.getElementById('cmp-platform-a').addEventListener('change', renderStatsPreview);
+    document.getElementById('cmp-platform-b').addEventListener('change', renderStatsPreview);
+    window.addEventListener('DOMContentLoaded', renderStatsPreview);
+    // Por si el DATASET tarda en estar disponible, intentamos también al cargar este script
+    setTimeout(renderStatsPreview, 300);
+
+    async function compararPlataformas() {
+      const boton = document.getElementById('btn-comparar');
+      const resultadoDiv = document.getElementById('resultado-comparacion');
+      const contenidoDiv = document.getElementById('comparacion-contenido');
+
+      const platA = document.getElementById('cmp-platform-a').value;
+      const platB = document.getElementById('cmp-platform-b').value;
+
+      if (platA === platB) {
+        resultadoDiv.classList.add('visible');
+        contenidoDiv.innerHTML = `<div class="resultado-error">Elegí dos plataformas distintas para comparar.</div>`;
+        return;
+      }
+
+      const statsA = statsDePlataforma(platA);
+      const statsB = statsDePlataforma(platB);
+
+      boton.disabled = true;
+      boton.textContent = '⚔️ Comparando...';
+      resultadoDiv.classList.add('visible');
+      contenidoDiv.innerHTML = `<p class="resultado-loading">Analizando ${statsA.nombre} vs ${statsB.nombre}...</p>`;
+
+      try {
+        const response = await fetch(COMPARE_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plataformaA: statsA.nombre,
+            totalA: statsA.total,
+            avgA: statsA.avg,
+            generoA: statsA.genero,
+            plataformaB: statsB.nombre,
+            totalB: statsB.total,
+            avgB: statsB.avg,
+            generoB: statsB.genero
+          })
+        });
+
+        if (!response.ok) throw new Error('Respuesta no OK: ' + response.status);
+
+        const data = await response.json();
+
+        if (!data.comparacion) {
+          throw new Error('Respuesta vacía');
+        }
+
+        const textoFormateado = escapeHtml(data.comparacion)
+          .replace(/\n/g, '<br>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        contenidoDiv.innerHTML = `<div class="resultado-card">${textoFormateado}</div>`;
+      } catch (error) {
+        contenidoDiv.innerHTML = `<div class="resultado-error">No pude conectarme con el asistente. Verificá que el workflow de n8n esté activo.</div>`;
+        console.error(error);
+      }
+
+      boton.disabled = false;
+      boton.textContent = '⚔️ Comparar con IA';
     }
   </script>
 </body>
