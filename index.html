@@ -758,6 +758,153 @@
     #resultado-comparacion.visible { display: block; }
 
     /* ============================================================
+       CHAT STREAMAI (asistente IA - texto libre)
+    ============================================================ */
+    #chat-ia { background: transparent; }
+
+    .chat-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-width: 640px;
+      margin: 0 auto;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--card2);
+    }
+
+    .chat-header .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 8px var(--blue);
+      animation: pulse 1.5s infinite;
+    }
+
+    .chat-header span.title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .chat-header span.subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    #chat-mensajes {
+      height: 360px;
+      overflow-y: auto;
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .msg-user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--violet), #5a1d99);
+      color: #fff;
+      border-bottom-right-radius: 2px;
+    }
+
+    .msg-bot {
+      align-self: flex-start;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 2px;
+    }
+
+    .msg-bot strong { color: var(--gold); }
+
+    .msg-loading {
+      align-self: flex-start;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-style: italic;
+    }
+
+    .msg-error {
+      align-self: flex-start;
+      background: rgba(229,9,20,0.1);
+      border: 1px solid rgba(229,9,20,0.3);
+      color: var(--red);
+    }
+
+    .chat-suggestions {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      padding: 0 1.4rem 1rem;
+    }
+
+    .chat-suggestion {
+      font-size: 0.75rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .chat-suggestion:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .chat-input-row {
+      display: flex; gap: 0.6rem;
+      padding: 1rem 1.4rem;
+      border-top: 1px solid var(--border);
+      background: var(--card2);
+    }
+
+    .chat-input-row input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .chat-input-row input:focus { border-color: var(--violet); }
+
+    .chat-input-row button {
+      background: linear-gradient(135deg, var(--red), #c0000b);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .chat-input-row button:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(229,9,20,0.35); }
+    .chat-input-row button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ============================================================
        LOADING OVERLAY
     ============================================================ */
     #loading-overlay {
@@ -832,7 +979,8 @@
       <li><a href="#home" class="active" onclick="setActive(this)">Inicio</a></li>
       <li><a href="#dashboard" onclick="setActive(this)">Dashboard</a></li>
       <li><a href="#recomendar" onclick="setActive(this)">Recomendar</a></li>
-      <li><a href="#chat-ia" onclick="setActive(this)">Sorprendeme</a></li>
+      <li><a href="#chat-ia" onclick="setActive(this)">Asistente IA</a></li>
+      <li><a href="#sorprendeme" onclick="setActive(this)">Sorprendeme</a></li>
       <li><a href="#comparador" onclick="setActive(this)">Comparar</a></li>
     </ul>
   </nav>
@@ -1024,9 +1172,44 @@
   </section>
 
   <!-- ============================================================
-       SECCIÓN SORPRENDEME IA
+       SECCIÓN CHAT IA (texto libre)
   ============================================================ -->
   <section id="chat-ia" style="max-width:1200px; margin:0 auto; padding:80px 2rem 60px;">
+    <p class="section-label">Preguntale a la IA</p>
+    <h2 class="section-title">Asistente de recomendación</h2>
+    <p class="section-desc">Un chat conectado a un workflow de n8n + OpenAI. Pedile un top 5 de cualquier género y te va a sugerir títulos junto con la plataforma donde mirarlos.</p>
+
+    <div class="chat-container">
+      <div class="chat-header">
+        <span class="dot"></span>
+        <span class="title">StreamAI Assistant</span>
+        <span class="subtitle">n8n + GPT-4o</span>
+      </div>
+
+      <div id="chat-mensajes">
+        <div class="msg msg-bot">
+          ¡Hola! 👋 Decime qué género te gusta y te tiro un top 5 con la plataforma donde mirarlo. Ejemplo: <strong>"recomendame comedias"</strong>.
+        </div>
+      </div>
+
+      <div class="chat-suggestions">
+        <span class="chat-suggestion" onclick="sugerencia('Recomendame un top 5 de comedias')">🎭 Comedias</span>
+        <span class="chat-suggestion" onclick="sugerencia('Recomendame un top 5 de terror')">👻 Terror</span>
+        <span class="chat-suggestion" onclick="sugerencia('Recomendame un top 5 de acción')">💥 Acción</span>
+        <span class="chat-suggestion" onclick="sugerencia('Recomendame series para ver en familia')">👨‍👩‍👧 Familia</span>
+      </div>
+
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Ej: ¿qué peli me recomendás de comedia?">
+        <button id="chat-enviar" onclick="enviarMensaje()">Enviar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECCIÓN SORPRENDEME IA
+  ============================================================ -->
+  <section id="sorprendeme" style="max-width:1200px; margin:0 auto; padding:80px 2rem 60px;">
     <p class="section-label">Automatización</p>
     <h2 class="section-title">Sorprendeme</h2>
     <p class="section-desc">Un workflow de n8n conectado a OpenAI: cada clic dispara un webhook que genera un top 5 de un género al azar, junto con la plataforma donde mirarlo.</p>
@@ -1175,6 +1358,81 @@
 
       boton.disabled = false;
       boton.textContent = '🎲 Sorprendeme';
+    }
+  </script>
+
+  <!-- ============================================================
+       CHAT IA (texto libre) · conexión con n8n
+       Usa el mismo webhook que "Sorprendeme" (WEBHOOK_URL), pero
+       mandando { mensaje: "..." } en vez de { genero: "..." }
+  ============================================================ -->
+  <script>
+    document.getElementById('chat-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') enviarMensaje();
+    });
+
+    function sugerencia(texto) {
+      document.getElementById('chat-input').value = texto;
+      enviarMensaje();
+    }
+
+    async function enviarMensaje() {
+      const input = document.getElementById('chat-input');
+      const boton = document.getElementById('chat-enviar');
+      const mensaje = input.value.trim();
+      if (!mensaje) return;
+
+      const chatDiv = document.getElementById('chat-mensajes');
+
+      const burbujaUser = document.createElement('div');
+      burbujaUser.className = 'msg msg-user';
+      burbujaUser.textContent = mensaje;
+      chatDiv.appendChild(burbujaUser);
+
+      input.value = '';
+      input.disabled = true;
+      boton.disabled = true;
+
+      const cargando = document.createElement('div');
+      cargando.className = 'msg-loading';
+      cargando.id = 'cargando';
+      cargando.textContent = 'StreamAI está pensando...';
+      chatDiv.appendChild(cargando);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mensaje: mensaje })
+        });
+
+        if (!response.ok) throw new Error('Respuesta no OK: ' + response.status);
+
+        const data = await response.json();
+        document.getElementById('cargando').remove();
+
+        const burbujaBot = document.createElement('div');
+        burbujaBot.className = 'msg msg-bot';
+        burbujaBot.innerHTML = escapeHtml(data.respuesta || '')
+          .replace(/\n/g, '<br>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        chatDiv.appendChild(burbujaBot);
+      } catch (error) {
+        const cargandoEl = document.getElementById('cargando');
+        if (cargandoEl) cargandoEl.remove();
+
+        const burbujaError = document.createElement('div');
+        burbujaError.className = 'msg msg-error';
+        burbujaError.textContent = 'No pude conectarme con el asistente. Verificá que el workflow de n8n esté activo.';
+        chatDiv.appendChild(burbujaError);
+        console.error(error);
+      }
+
+      input.disabled = false;
+      boton.disabled = false;
+      input.focus();
+      chatDiv.scrollTop = chatDiv.scrollHeight;
     }
   </script>
 
