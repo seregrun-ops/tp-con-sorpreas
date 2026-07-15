@@ -10,18 +10,23 @@ A partir de estos datos se desarrolló un dashboard interactivo y un motor de re
 
 ## Contenido
 
-```
-├── index.html            # Pagina Web
-├── app.js                # Lógica: KPIs, gráficos, filtros y motor de similitud (TF-IDF)
-├── dataset_embed.js      # Dataset (800 títulos) embebido como variable JS
+## Estructura del proyecto
+
+```text
+tp-con-sorpreas/
+│
+├── index.html                # Página principal
+├── app.js                    # Lógica del dashboard y recomendaciones
+├── dataset_embed.js          # Dataset embebido (800 títulos)
+├── generate_dataset.py       # Script de procesamiento del dataset
+├── chatbot-sorprendeme(n8n).json
+├── comparador(n8n).json
 ├── README.md
 ├── LICENSE
-├── docs/
-│   ├── Presentacion_Proyecto.pdf
-│   ├── Seguimiento.pdf
-│   └── Flujo_n8n.pdf
-└── scripts/
-    └── generate_dataset.py
+│
+└── docs/
+    ├── Stream IA - Pagina.pptx
+    └── Proyecto Stream IA con n8n.pptx
 ```
 ## Arquitectura del proyecto
 
