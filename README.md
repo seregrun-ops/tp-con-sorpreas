@@ -15,18 +15,31 @@ A partir de estos datos se desarrolló un dashboard interactivo y un motor de re
 ```text
 tp-con-sorpreas/
 │
-├── index.html                # Página principal
-├── app.js                    # Lógica del dashboard y recomendaciones
-├── dataset_embed.js          # Dataset embebido (800 títulos)
-├── generate_dataset.py       # Script de procesamiento del dataset
-├── chatbot-sorprendeme(n8n).json
-├── comparador(n8n).json
+├── index.html
+├── app.js
+├── dataset_embed.js
 ├── README.md
 ├── LICENSE
+├── requirements.txt
 │
-└── docs/
-    ├── Stream IA - Pagina.pptx
-    └── Proyecto Stream IA con n8n.pptx
+├── docs/
+│   ├── Proyecto Stream IA con n8n.pdf
+│   └── Stream IA - Pagina.pdf
+│
+├── n8n/
+│   ├── chatbot-sorprendeme.json
+│   └── comparador.json
+│
+├── preprocessing/
+│   └── preprocess_datasets.py
+│
+└── data/
+    ├── raw/
+    │   └── README.md
+    │
+    └── processed/
+        ├── streaming_unificado.csv
+        └── streaming_muestra_800.csv
 ```
 ## Arquitectura del proyecto
 
