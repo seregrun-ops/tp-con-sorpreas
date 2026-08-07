@@ -25,8 +25,9 @@ const TIPO_LABEL = { "Movie": "Película", "TV Show": "Serie" };
 
 /** Calcula el promedio de puntaje de un array de ítems */
 function promedio(arr) {
-  if (!arr.length) return 0;
-  return (arr.reduce((a, b) => a + b.puntaje, 0) / arr.length);
+  const conPuntaje = arr.filter(item => item.puntaje != null && !isNaN(item.puntaje));
+  if (!conPuntaje.length) return 0;
+  return (conPuntaje.reduce((a, b) => a + b.puntaje, 0) / conPuntaje.length);
 }
 
 /** Cuenta ocurrencias de un campo en un array de ítems */
@@ -280,7 +281,11 @@ function filtrarDataset({ genero = '', plataforma = '', tipo = '', puntajeMin = 
     if (item.puntaje < puntajeMin) return false;
     return true;
   });
-  resultado.sort((a, b) => b.puntaje - a.puntaje);
+  resultado.sort((a, b) => {
+    const pa = (a.puntaje != null && !isNaN(a.puntaje)) ? a.puntaje : -1;
+    const pb = (b.puntaje != null && !isNaN(b.puntaje)) ? b.puntaje : -1;
+    return pb - pa;
+  });
   return resultado;
 }
 
@@ -295,7 +300,7 @@ function renderCard(item, extra = {}) {
     <div class="content-card">
       <div class="content-card-header">
         <div class="content-title">${item.titulo}</div>
-        <div class="content-score">⭐ ${item.puntaje.toFixed(1)}</div>
+        <div class="content-score">⭐ ${item.puntaje != null && !isNaN(item.puntaje) ? item.puntaje.toFixed(1) : 'N/D'}</div>
       </div>
       <div class="content-meta">
         <span class="tag tag-platform">${item.plataforma}</span>
