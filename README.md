@@ -53,12 +53,31 @@ https://seregrun-ops.github.io/tp-con-sorpreas/
 Repositorio:
 https://github.com/Seregrun-ops/tp-con-sorpreas
 ## Dataset
-El archivo `dataset_embed.js` contiene una muestra de 800 títulos, con un esquema
-equivalente al dataset público *"Netflix Movies and TV Shows"* de Kaggle,
-extendido con la columna `plataforma` para cubrir los 5 servicios de
-streaming. Columnas: `show_id`, `titulo`, `tipo`, `plataforma`, `director`,
-`elenco`, `pais`, `fecha_agregado`, `anio_lanzamiento`, `clasificacion`,
-`duracion`, `genero`, `descripcion`, `puntaje`.
+El archivo `dataset_embed.js` contiene una muestra de 800 títulos, obtenida
+mediante un proceso real de unificación de los 5 datasets de Kaggle listados
+abajo. El proceso completo está documentado en
+`preprocessing/preprocessing_streamai.ipynb`, y consiste en:
+
+1. Descarga de los 5 datasets desde Kaggle (API oficial).
+2. Normalización de columnas: cada plataforma trae un esquema distinto
+   (Netflix/Prime Video vs. Disney+/Apple TV+/HBO Max), por lo que se
+   mapean todas a un esquema común.
+3. Concatenación de las 5 plataformas en un único dataset de 23.529 títulos
+   (`data/streaming_dataset_full.csv`).
+4. Muestreo proporcional de 800 títulos (`data/streaming_dataset_sample.csv`),
+   respetando el tamaño real de catálogo de cada plataforma.
+
+Columnas: `show_id`, `titulo`, `tipo`, `plataforma`, `director`, `elenco`,
+`pais`, `fecha_agregado`, `anio_lanzamiento`, `clasificacion`, `duracion`,
+`genero`, `descripcion`, `puntaje`.
+
+**Limitaciones conocidas del dataset real:**
+- Netflix y Prime Video no incluyen puntaje de IMDb en su fuente original;
+  esos títulos quedan con `puntaje` vacío (se muestra "N/D" en la web).
+- Disney+, Apple TV+ y HBO Max no incluyen fecha de agregado al catálogo;
+  se aproxima con el 1 de enero del año de estreno.
+- Apple TV+ tiene un catálogo fuente mucho más chico (170 títulos) que el
+  resto, por lo que está subrepresentado en la muestra proporcional (6 de 800).
 Enlaces de Datasets:
 https://www.kaggle.com/datasets/shivamb/netflix-show
 https://www.kaggle.com/datasets/unanimad/disney-plus-shows
