@@ -104,38 +104,45 @@ function renderKPIs() {
 function renderCharts() {
   const COLORS = ['#E50914', '#0063E5', '#00A8E1', '#5822A0', '#A2AAAD', '#F5A623', '#7B2FBE', '#4ade80', '#00B4D8', '#f472b6', '#facc15', '#94a3b8'];
 
-  // --- Gráfico 1: títulos por plataforma (doughnut) ---
+  // --- Gráfico 1: títulos por plataforma (bar vertical) ---
   const platData = contarPor(DATASET, 'plataforma');
+  const sortedPlat = Object.entries(platData).sort((a, b) => b[1] - a[1]);
   new Chart(document.getElementById('chartPlatform'), {
-    type: 'doughnut',
+    type: 'bar',
     data: {
-      labels: Object.keys(platData),
+      labels: sortedPlat.map(e => e[0]),
       datasets: [{
-        data: Object.values(platData),
+        data: sortedPlat.map(e => e[1]),
         backgroundColor: COLORS,
-        borderColor: '#13131A',
-        borderWidth: 3,
-        hoverOffset: 6
+        borderRadius: 6,
+        borderSkipped: false
       }]
     },
     options: {
-      plugins: {
-        legend: { position: 'bottom', labels: { color: '#8888A8', font: { size: 11 }, padding: 14 } }
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#F0F0F0', font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#8888A8', font: { size: 10 } }, grid: { color: '#2a2a45' }, beginAtZero: true }
       },
       responsive: true
     }
   });
 
-  // --- Gráfico 2: distribución por género (bar horizontal) ---
+  // --- Gráfico 2: distribución por género (bar horizontal, top 12 + Otros) ---
   const genData = contarPor(DATASET, 'genero');
-  const sortedGen = Object.entries(genData).sort((a, b) => b[1] - a[1]);
+  const sortedGenAll = Object.entries(genData).sort((a, b) => b[1] - a[1]);
+  const TOP_N = 12;
+  const topGen = sortedGenAll.slice(0, TOP_N);
+  const restoGen = sortedGenAll.slice(TOP_N);
+  const otrosTotal = restoGen.reduce((sum, e) => sum + e[1], 0);
+  const sortedGen = otrosTotal > 0 ? [...topGen, ['Otros', otrosTotal]] : topGen;
   new Chart(document.getElementById('chartGenre'), {
     type: 'bar',
     data: {
       labels: sortedGen.map(e => e[0]),
       datasets: [{
         data: sortedGen.map(e => e[1]),
-        backgroundColor: COLORS,
+        backgroundColor: sortedGen.map((e, i) => e[0] === 'Otros' ? '#4a4a63' : COLORS[i % COLORS.length]),
         borderRadius: 6,
         borderSkipped: false
       }]
