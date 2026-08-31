@@ -322,15 +322,20 @@ function renderCard(item, extra = {}) {
   `;
 }
 
+// Estado de paginación de la sección de recomendación
+const PAGE_SIZE = 12;
+let resultadosCompletos = [];
+let paginaActual = 1;
+
 function filtrar() {
   const genero = document.getElementById('f-genre').value;
   const plataforma = document.getElementById('f-platform').value;
   const tipo = document.getElementById('f-type').value;
   const puntajeMin = parseFloat(document.getElementById('f-score').value) || 0;
 
-  const resultados = filtrarDataset({ genero, plataforma, tipo, puntajeMin }).slice(0, 60);
-
-  pintarResultados(resultados, resultados.length);
+  resultadosCompletos = filtrarDataset({ genero, plataforma, tipo, puntajeMin });
+  paginaActual = 1;
+  pintarResultados();
 }
 
 function resetFiltros() {
@@ -349,6 +354,8 @@ function buscarSimilares() {
   const res = similares(titulo, 12);
   const grid = document.getElementById('results-grid');
   const count = document.getElementById('results-count');
+  const pag = document.getElementById('pagination');
+  pag.innerHTML = ''; // la búsqueda por similitud no pagina (son 12 resultados fijos)
 
   if (!res) {
     grid.innerHTML = `<div class="no-results" style="grid-column:1/-1"><span>🔍</span>No encontramos "${titulo}" en el catálogo.</div>`;
@@ -360,17 +367,53 @@ function buscarSimilares() {
   grid.innerHTML = res.resultados.map(r => renderCard(r, { similitud: r.similitud })).join('');
 }
 
-function pintarResultados(resultados, totalCount) {
+function pintarResultados() {
   const grid = document.getElementById('results-grid');
   const count = document.getElementById('results-count');
+  const pag = document.getElementById('pagination');
+  const totalCount = resultadosCompletos.length;
 
-  if (!resultados.length) {
+  if (!totalCount) {
     grid.innerHTML = `<div class="no-results" style="grid-column:1/-1"><span>🎭</span>No encontramos títulos con esos filtros. Probá con otras opciones.</div>`;
     count.textContent = 'Sin resultados';
-  } else {
-    grid.innerHTML = resultados.map(r => renderCard(r)).join('');
-    count.textContent = `${totalCount} título${totalCount !== 1 ? 's' : ''} encontrado${totalCount !== 1 ? 's' : ''} (mostrando hasta 60)`;
+    pag.innerHTML = '';
+    return;
   }
+
+  const totalPaginas = Math.ceil(totalCount / PAGE_SIZE);
+  paginaActual = Math.min(Math.max(paginaActual, 1), totalPaginas);
+  const inicio = (paginaActual - 1) * PAGE_SIZE;
+  const paginaResultados = resultadosCompletos.slice(inicio, inicio + PAGE_SIZE);
+
+  grid.innerHTML = paginaResultados.map(r => renderCard(r)).join('');
+  count.textContent = `${totalCount} título${totalCount !== 1 ? 's' : ''} encontrado${totalCount !== 1 ? 's' : ''} · página ${paginaActual} de ${totalPaginas}`;
+
+  renderPaginacion(totalPaginas);
+}
+
+function renderPaginacion(totalPaginas) {
+  const pag = document.getElementById('pagination');
+  if (totalPaginas <= 1) { pag.innerHTML = ''; return; }
+
+  const btn = (label, disabled, onclick, activo = false) => `
+    <button
+      onclick="${onclick}"
+      ${disabled ? 'disabled' : ''}
+      class="btn ${activo ? 'btn-filter' : 'btn-outline'}"
+      style="padding:8px 14px; ${disabled ? 'opacity:0.4; cursor:not-allowed;' : ''}"
+    >${label}</button>`;
+
+  let html = btn('‹ Anterior', paginaActual === 1, 'cambiarPagina(paginaActual - 1)');
+  html += `<span style="color:var(--text-muted); font-size:0.85rem;">Página ${paginaActual} de ${totalPaginas}</span>`;
+  html += btn('Siguiente ›', paginaActual === totalPaginas, 'cambiarPagina(paginaActual + 1)');
+
+  pag.innerHTML = html;
+}
+
+function cambiarPagina(nueva) {
+  paginaActual = nueva;
+  pintarResultados();
+  document.getElementById('recomendar').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /** Llena el select de géneros dinámicamente desde el dataset */
